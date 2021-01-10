@@ -7,13 +7,15 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"io"
+	"net"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/armon/go-socks5"
 	"github.com/hashicorp/yamux"
 	"github.com/sirupsen/logrus"
-	"io"
-	"net"
-	"strings"
-	"time"
 )
 
 var tlsFingerprint string
@@ -89,6 +91,15 @@ func StartLigolo(relayServer string, targetServer string, skipVerify bool) error
 	if err != nil {
 		return err
 	}
+
+	init, err := session.Accept()
+	if err != nil {
+		logrus.Error(err)
+	}
+
+	hostname, _ := os.Hostname()
+	init.Write([]byte(hostname))
+	init.Close()
 
 	logrus.Infoln("Waiting for connections....")
 
